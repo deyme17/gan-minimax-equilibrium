@@ -37,10 +37,11 @@ class Config:
     # registries
     D_model: RegistryConfig = field(default_factory=RegistryConfig)
     G_model: RegistryConfig = field(default_factory=RegistryConfig)
+
     D_optimizer: RegistryConfig = field(default_factory=RegistryConfig)
     G_optimizer: RegistryConfig = field(default_factory=RegistryConfig)
+
     loss: RegistryConfig = field(default_factory=RegistryConfig)
-    lr_scheduler: RegistryConfig = field(default_factory=RegistryConfig)
 
     def __post_init__(self) -> None:
         """
