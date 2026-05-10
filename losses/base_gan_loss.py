@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import torch
 
 
-class GANLoss(ABC):
+class BaseGANLoss(ABC):
     """Base class for GAN loss implementations."""
     @abstractmethod
     def D_loss(self, real: torch.Tensor, fake: torch.Tensor) -> torch.Tensor:
