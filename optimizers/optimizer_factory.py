@@ -12,7 +12,11 @@ def _get_optimizer(opt_cfg: RegistryConfig, params: ParamsT) -> opt.Optimizer:
 
 
 def get_G_optimizer(config: Config, params: ParamsT) -> opt.Optimizer: 
-    return _get_optimizer(config.G_optimizer, params)
+    optim = _get_optimizer(config.G_optimizer, params)
+    print(f"Generator optimizer: {config.G_optimizer.name}")
+    return optim
 
 def get_D_optimizer(config: Config, params: ParamsT) -> opt.Optimizer:
-    return _get_optimizer(config.D_optimizer, params)
+    optim = _get_optimizer(config.D_optimizer, params)
+    print(f"Discriminator optimizer: {config.D_optimizer.name}")
+    return optim
