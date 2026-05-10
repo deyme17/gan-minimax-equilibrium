@@ -24,8 +24,12 @@ class Config:
     input_ch: int = 3
 
     n_workers: int = 4
-    persistent_workers: bool = True
-    prefetch_factor: int = 2
+    persistent_workers: bool = n_workers > 0
+    prefetch_factor: int = 2 if n_workers > 0 else 0
+
+    shuffle: bool = True
+    drop_last: bool = False
+    pin_memory: bool = True
 
     # training
     seed: int = 17
