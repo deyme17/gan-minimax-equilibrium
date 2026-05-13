@@ -34,6 +34,7 @@ class Config:
     # training
     seed: int = 17
 
+    g_add_iter: int = 5
     epochs: int = 320
     early_stop: int = 15
     max_norm: float = 1.0
