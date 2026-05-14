@@ -1,0 +1,78 @@
+from .config_cls import Config
+from pathlib import Path
+import random as rnd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from torch import nn
+from torch.optim import Optimizer
+import torch
+
+
+
+def set_seed(seed: int):
+    rnd.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
+
+def save_checkpoint(G: nn.Module, D: nn.Module, G_optim: Optimizer, D_optim: Optimizer, 
+                    D_losses: list[float], G_losses: list[float], epoch: int,
+                    save_path: Path|str = Config.checkpoints_dir / "checkpoint.pt") -> None:
+    """Save checkpoint dict with epoch, G/D model, optimizer, losses."""
+    torch.save({
+        "epoch": epoch,
+        "G": G.state_dict(),
+        "D": D.state_dict(),
+        "G_optim": G_optim.state_dict(),
+        "D_optim": D_optim.state_dict(),
+        "G_losses": G_losses,
+        "D_losses": D_losses,
+    }, Path(save_path))
+
+
+
+def load_checkpoint(path: Path|str, G: nn.Module, D: nn.Module,
+                    map_location: str = None) -> tuple[nn.Module, nn.Module, dict]:
+    """Load checkpoint and return (G, D, whole_checkpoint)."""
+    if not path.exists():
+        raise FileNotFoundError(f"Checkpoint not found: {path}")
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    checkpoint = torch.load(path, map_location=map_location or device)
+    if "G" not in checkpoint or "D" not in checkpoint:
+        raise KeyError(f"'G' or 'D key is not found in checkpoint: {path}")
+    
+    G.to(device)
+    D.to(device)
+    try:
+        G.load_state_dict(checkpoint["G"], strict=True)
+        D.load_state_dict(checkpoint["D"], strict=True)
+    except RuntimeError as e:
+        raise RuntimeError(
+            f"Failed to load state_dict for {G.__name__} or {D.__name__}: {e}"
+        )
+    G.eval()
+    D.eval()
+
+    return G, D, checkpoint
+
+
+
+def visualize_progress(G_losses: list[float], 
+                       D_losses: list[float], 
+                       save: bool = False) -> None:
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(G_losses, label='Generator Loss')
+    ax.plot(D_losses, label='Discriminator Loss')
+    ax.set_title('Losses')
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel('Loss')
+    ax.legend()
+    plt.tight_layout()
+    if save:
+        fig.savefig("training_plot.png")
+        plt.close(fig)
+    else:
+        plt.show()
