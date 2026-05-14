@@ -9,6 +9,7 @@ class Discriminator(nn.Module):
     """
     def __init__(self, 
                  image_size: int = 512, 
+                 image_channels: int = 3,
                  base_channels: int = 64,
                  dropout_rate: float = 0.0, 
                  sn: bool = False,
@@ -18,6 +19,7 @@ class Discriminator(nn.Module):
         """
         Args:
             image_size: Input spatial resolution (assumed square). Default 512.
+            image_size: Input image channels. Default 3.
             base_channels: Channel width at the first conv block. Default 64.
             dropout_rate: Dropout probability applied in deeper blocks. Default 0.
             sn: Use spectral normalisation on conv layers. Default False.
@@ -39,7 +41,7 @@ class Discriminator(nn.Module):
 
         self.features = nn.Sequential(
             # 512 -> 256
-            self._conv_block(3, ch, sn=sn, norm="none",
+            self._conv_block(image_channels, ch, sn=sn, norm="none",
                              neg_slope=neg_slope),
             # 256 -> 128
             self._conv_block(ch, ch * 2, sn=sn, norm=norm,
