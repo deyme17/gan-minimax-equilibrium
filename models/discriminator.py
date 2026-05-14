@@ -19,7 +19,7 @@ class Discriminator(nn.Module):
         """
         Args:
             image_size: Input spatial resolution (assumed square). Default 512.
-            image_size: Input image channels. Default 3.
+            image_channels: Input image channels. Default 3.
             base_channels: Channel width at the first conv block. Default 64.
             dropout_rate: Dropout probability applied in deeper blocks. Default 0.
             sn: Use spectral normalisation on conv layers. Default False.

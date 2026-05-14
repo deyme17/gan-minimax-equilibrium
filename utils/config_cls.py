@@ -21,7 +21,7 @@ class Config:
     batch_size: int = 16
 
     input_dim: int = 512
-    noise_dim: int = 50
+    noise_dim: int = 128
     input_ch: int = 3
 
     n_workers: int = 4
