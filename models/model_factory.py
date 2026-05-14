@@ -8,7 +8,7 @@ def get_generator(config: Config) -> nn.Module:
     g_factory = MODELS.get(g_cfg.name)
     if g_factory is None:
         raise ValueError(f"Unknown Generator: {g_cfg.name}")
-    print(f"Generator: {g_cfg.name}\nGenerator Parameters: {g_cfg.parameters}")
+    print(f"Generator: {g_cfg.name}")
     return g_factory(**g_cfg.parameters)
 
 def get_discriminator(config: Config) -> nn.Module:
@@ -16,5 +16,5 @@ def get_discriminator(config: Config) -> nn.Module:
     d_factory = MODELS.get(d_cfg.name)
     if d_factory is None:
         raise ValueError(f"Unknown Discriminator: {d_cfg.name}")
-    print(f"Discriminator: {d_cfg.name}\nDiscriminator parameters: {d_cfg.parameters}")
+    print(f"Discriminator: {d_cfg.name}")
     return d_factory(**d_cfg.parameters)
