@@ -5,10 +5,10 @@ from utils import Config
 
 
 def get_dataset(data_root: Path, 
-                transform=None) -> PussyDataset:
+                transforms=None) -> PussyDataset:
     return PussyDataset(
         data_root=data_root,
-        transform=transform
+        transforms=transforms
     )
 
 
