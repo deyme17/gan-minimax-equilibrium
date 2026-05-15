@@ -1,0 +1,49 @@
+noise_dim: 128
+seed: 177
+n_g: 4      # change if equilibrium can not be converged
+epochs: 50  # only 50 for experiments
+G_max_norm: 12
+D_max_norm: 9
+
+D_model:
+    name: "D"
+    parameters:
+        image_size: 512
+        image_channels: 3
+        base_channels: 64
+        dropout_rate: 0.0   # turn on if overfitting
+        sn:  False          # should be tried
+        neg_slope: 0.2
+        norm: "instance"    # 'batch' | 'none'
+        patch: False        # should be tried
+
+G_model:
+    name: "baseline_G"      # "G" (advanced) must be tried
+    parameters:
+        n_z: 128
+        image_size: 512
+        image_channels: 3
+        base_size: 8
+        base_channels: 512
+
+
+D_optimizer:
+    name: "AdamW"
+    parameters:
+        lr:  0.0002         # different lr should be tried 
+        betas: [0.5, 0.999]
+        weight_decay: 0
+        amsgrad: False
+
+G_optimizer:
+    name: "AdamW"
+    parameters:
+        lr:  0.0002         # different lr should be tried 
+        betas: [0.5, 0.999]
+        weight_decay: 0
+        amsgrad: False
+
+
+loss:
+    name: "BCE"             # "Wasserstein" | "Hinge"
+    parameters: {}
