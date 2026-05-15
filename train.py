@@ -6,6 +6,7 @@ from tqdm import tqdm
 import yaml
 from pathlib import Path
 
+from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 from utils import (Config, 
     save_checkpoint, load_checkpoint, 
@@ -28,6 +29,8 @@ def train(G: nn.Module,
           train_loader: DataLoader, 
           config: Config,
           curr_epoch: int = 0, 
+          G_losses: list[float] = [],
+          D_losses: list[float] = [],
           device: str = "cpu",
           experiment_tag: str = "experiment") -> tuple[float, float]:
     """
@@ -39,7 +42,6 @@ def train(G: nn.Module,
     else:
         print("[WARNING] CUDA is not available.")
 
-    G_losses, D_losses = [], []
     D.train()
     G.train()
 
@@ -64,6 +66,11 @@ def train(G: nn.Module,
 
             D_loss = criterion.D_loss(real_pred, fake_pred)
             D_loss.backward()
+
+            # grad clipping
+            if config.max_norm is not None:
+                clip_grad_norm_(D.parameters(), config.max_norm)
+
             D_optim.step()
 
             epoch_d_loss += D_loss.item()
@@ -78,6 +85,11 @@ def train(G: nn.Module,
 
                 G_loss = criterion.G_loss(fake_pred)
                 G_loss.backward()
+
+                # grad clipping
+                if config.max_norm is not None:
+                    clip_grad_norm_(G.parameters(), config.max_norm)       
+
                 G_optim.step()
 
                 epoch_g_loss += G_loss.item()
@@ -138,6 +150,8 @@ if __name__ == "__main__":
 
     # load checkpoint
     curr_epoch = 0
+    D_losses = []
+    G_losses = []
     if args.checkpoint is not None:
         G, D, state_dict = load_checkpoint(
             path=checkpoint_path, 
@@ -148,6 +162,8 @@ if __name__ == "__main__":
         D_optimizer.load_state_dict(state_dict["D_optim"])
 
         curr_epoch = state_dict["epoch"] + 1
+        D_losses = state_dict["D_losses"]
+        G_losses = state_dict["G_losses"]
         print(f"Resumed '{checkpoint_path}' at epoch {curr_epoch}.")
 
     # train
@@ -159,6 +175,8 @@ if __name__ == "__main__":
         train_loader=dataloader,
         config=config,
         curr_epoch=curr_epoch,
+        D_losses=D_losses,
+        G_losses=G_losses,
         device=device,
         experiment_tag=args.tag,
     )
