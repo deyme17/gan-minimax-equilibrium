@@ -25,8 +25,8 @@ class Config:
     input_ch: int = 3
 
     n_workers: int = 4
-    persistent_workers: bool = n_workers > 0
-    prefetch_factor: int = 2 if n_workers > 0 else 0
+    persistent_workers: bool = False
+    prefetch_factor: int|None = None
 
     shuffle: bool = True
     drop_last: bool = False

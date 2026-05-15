@@ -72,7 +72,8 @@ def train(G: nn.Module,
                 G_optim.zero_grad(set_to_none=True)
 
                 noise = torch.randn(real_imgs.shape[0], config.noise_dim, device=device)
-                fake_imgs = G(noise)
+                with torch.no_grad():
+                    fake_imgs = G(noise)
                 fake_pred = D(fake_imgs).view(-1)
 
                 G_loss = criterion.G_loss(fake_pred)
@@ -105,7 +106,6 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint", type=str, default=None, help="Path to checkpoint to resume from")
     parser.add_argument("--tag", type=str, default="experiment", help="Current train loop launch tag (used for saving)")
     args = parser.parse_args()
-    torch.cuda.empty_cache()
 
     config_path = Path(args.config)
     if not config_path.exists():
