@@ -37,7 +37,8 @@ class Config:
 
     n_g: int = 2
     epochs: int = 320
-    max_norm: float|None = 1.3
+    G_max_norm: float|None = None
+    D_max_norm: float|None = None
 
     # registries
     D_model: RegistryConfig = field(default_factory=RegistryConfig)

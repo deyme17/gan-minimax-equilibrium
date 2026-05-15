@@ -63,17 +63,18 @@ def load_checkpoint(path: Path|str, G: nn.Module, D: nn.Module,
 
 def visualize_progress(G_losses: list[float], 
                        D_losses: list[float], 
+                       title: str = "Losses",
                        save: bool = False) -> None:
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(G_losses, label='Generator Loss')
     ax.plot(D_losses, label='Discriminator Loss')
-    ax.set_title('Losses')
+    ax.set_title(title)
     ax.set_xlabel('Iteration')
     ax.set_ylabel('Loss')
     ax.legend()
     plt.tight_layout()
     if save:
-        fig.savefig("training_plot.png")
+        fig.savefig(f"{title}.png")
         plt.close(fig)
     else:
         plt.show()

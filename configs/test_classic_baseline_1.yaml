@@ -2,6 +2,8 @@ noise_dim: 128
 seed: 17
 n_g: 2      # change if equilibrium can not be converged
 epochs: 50  # only 50 for experiments
+G_max_norm: 3
+D_max_norm: 5
 
 D_model:
     name: "D"

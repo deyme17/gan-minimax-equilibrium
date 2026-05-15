@@ -68,8 +68,8 @@ def train(G: nn.Module,
             D_loss.backward()
 
             # grad clipping
-            if config.max_norm is not None:
-                clip_grad_norm_(D.parameters(), config.max_norm)
+            if config.D_max_norm is not None:
+                clip_grad_norm_(D.parameters(), config.D_max_norm)
 
             D_optim.step()
 
@@ -87,8 +87,8 @@ def train(G: nn.Module,
                 G_loss.backward()
 
                 # grad clipping
-                if config.max_norm is not None:
-                    clip_grad_norm_(G.parameters(), config.max_norm)       
+                if config.G_max_norm is not None:
+                    clip_grad_norm_(G.parameters(), config.G_max_norm)       
 
                 G_optim.step()
 
@@ -180,4 +180,4 @@ if __name__ == "__main__":
         device=device,
         experiment_tag=args.tag,
     )
-    visualize_progress(G_losses, D_losses, save=True)
+    visualize_progress(G_losses, D_losses, title=args.tag, save=True)
