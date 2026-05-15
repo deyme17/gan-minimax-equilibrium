@@ -27,6 +27,7 @@ def get_dataloader(config: Config,
         drop_last=config.drop_last,
         pin_memory=config.pin_memory,
     )
-    print(f"Dataloader initialized with num_workers={config.n_workers}, \
-                                        batch_size={config.batch_size}.")
+    print(f"Dataloader initialized with:\
+           num_workers={config.n_workers},\
+           batch_size={config.batch_size}.")
     return dl
