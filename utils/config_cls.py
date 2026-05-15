@@ -55,16 +55,14 @@ class Config:
         self.data_dir = Path(self.data_dir).resolve()
         self.checkpoints_dir = Path(self.checkpoints_dir).resolve()
         self.persistent_workers = self.n_workers > 0
+        self.prefetch_factor = 2 if self.n_workers > 0 else None
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> Config:
-        """
-        Create Config from loaded YAML dictionary.
-        """
+    def from_dict(cls, cfg: dict[str, Any]) -> "Config":
         cfg = cfg.copy()
-        # nested dataclasses
-        cfg["model"] = RegistryConfig(**cfg.get("model", {}))
-        cfg["optimizer"] = RegistryConfig(**cfg.get("optimizer", {}))
+        cfg["D_model"] = RegistryConfig(**cfg.get("D_model", {}))
+        cfg["G_model"] = RegistryConfig(**cfg.get("G_model", {}))
+        cfg["D_optimizer"] = RegistryConfig(**cfg.get("D_optimizer", {}))
+        cfg["G_optimizer"] = RegistryConfig(**cfg.get("G_optimizer", {}))
         cfg["loss"] = RegistryConfig(**cfg.get("loss", {}))
-        cfg["lr_scheduler"] = RegistryConfig(**cfg.get("lr_scheduler", {}))
         return cls(**cfg)

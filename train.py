@@ -115,10 +115,9 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Checkpoint path not found: {checkpoint_path}") 
 
     # config
-    config = Config()
     with open(config_path, "r") as f:
         config_dict = yaml.safe_load(f)
-    config.from_dict(config_dict)
+    config = Config.from_dict(config_dict)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     set_seed(config.seed)
 
