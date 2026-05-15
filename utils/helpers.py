@@ -17,9 +17,10 @@ def set_seed(seed: int):
 
 
 
-def save_checkpoint(G: nn.Module, D: nn.Module, G_optim: Optimizer, D_optim: Optimizer, 
-                    G_losses: list[float], D_losses: list[float], epoch: int,
-                    save_path: Path|str = Config.checkpoints_dir / "checkpoint.pt") -> None:
+def save_checkpoint(G: nn.Module, D: nn.Module, 
+                    G_optim: Optimizer, D_optim: Optimizer, 
+                    G_losses: list[float], D_losses: list[float], 
+                    epoch: int, save_path: Path|str) -> None:
     """Save checkpoint dict with epoch, G/D model, optimizer, losses."""
     torch.save({
         "epoch": epoch,
