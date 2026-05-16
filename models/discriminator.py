@@ -91,13 +91,14 @@ class Discriminator(nn.Module):
         if sn:
             conv = spectral_norm(conv)
 
-        layers: list[nn.Module] = [conv, nn.LeakyReLU(neg_slope, inplace=True)]
+        layers: list[nn.Module] = [conv]
 
         if norm == "batch":
             layers.append(nn.BatchNorm2d(out_c))
         elif norm == "instance":
             layers.append(nn.InstanceNorm2d(out_c, affine=True))
 
+        layers.append(nn.LeakyReLU(neg_slope, inplace=True))
         if dropout_rate > 0.0:
             layers.append(nn.Dropout2d(dropout_rate))
 

@@ -124,7 +124,7 @@ class AdvancedGenerator(nn.Module):
                  n_z: int = 128,
                  image_size: int = 512,
                  image_channels: int = 3,
-                 base_size: int = 8,
+                 base_size: int = 4,
                  base_channels: int = 512,
                  ):
         """
@@ -132,7 +132,7 @@ class AdvancedGenerator(nn.Module):
             n_z: Size of random noise input vector. Default 128.
             image_size: Input spatial resolution (assumed square). Default 512.
             image_channels: Input image channels. Default 3.
-            base_size: Feature map width at the first deconv block. Default 8.
+            base_size: Feature map width at the first deconv block. Default 4.
             base_channels: Channel width at the first deconv block. Default 512.
         """
         super().__init__()
