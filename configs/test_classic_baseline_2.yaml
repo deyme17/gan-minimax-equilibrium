@@ -2,8 +2,8 @@ noise_dim: 128
 seed: 177
 n_g: 4      # change if equilibrium can not be converged
 epochs: 50  # only 50 for experiments
-G_max_norm: 12
-D_max_norm: 9
+G_max_norm: 3
+D_max_norm: 5
 
 D_model:
     name: "D"
@@ -47,3 +47,8 @@ G_optimizer:
 loss:
     name: "BCE"             # "Wasserstein" | "Hinge"
     parameters: {}
+
+
+# Conclusions: 
+#   - D - is much stronger then G and it's very confident
+#   - G gets confiedent rejection fromn D it leads to explosive gradients and G diverge + drives in mode collapse

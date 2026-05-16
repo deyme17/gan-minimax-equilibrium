@@ -36,6 +36,7 @@ class Config:
     seed: int = 17
 
     n_g: int = 2
+    n_d: int = 1
     epochs: int = 320
     G_max_norm: float|None = None
     D_max_norm: float|None = None

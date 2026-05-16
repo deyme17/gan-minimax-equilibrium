@@ -47,3 +47,8 @@ G_optimizer:
 loss:
     name: "BCE"             # "Wasserstein" | "Hinge"
     parameters: {}
+
+
+# Conclusions: 
+#   - D is stronger then G
+#   - G too weak; n_g is small, lr is big
