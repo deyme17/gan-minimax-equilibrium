@@ -48,55 +48,65 @@ def train(G: nn.Module,
     for epoch in range(curr_epoch, config.epochs):
         epoch_g_loss = 0.0
         epoch_d_loss = 0.0
-
-        ### train Discriminator ###
-        pbar = tqdm(train_loader, desc=f"Train D: Epoch {epoch+1}/{config.epochs}", leave=False)
-        for real_imgs in pbar:
-            real_imgs = real_imgs.to(device)
-
-            D_optim.zero_grad(set_to_none=True)
-
-            # all real batches
-            real_pred = D(real_imgs).view(-1)
-            # all fake batches
-            noise = torch.randn(real_imgs.shape[0], config.noise_dim, device=device)
-            with torch.no_grad():
-                fake_imgs = G(noise)
-            fake_pred = D(fake_imgs.detach()).view(-1)
-
-            D_loss = criterion.D_loss(real_pred, fake_pred)
-            D_loss.backward()
-
-            # grad clipping
-            if config.D_max_norm is not None:
-                clip_grad_norm_(D.parameters(), config.D_max_norm)
-
-            D_optim.step()
-
-            epoch_d_loss += D_loss.item()
-
-        ### train Generator ###
-            for _ in range(config.n_g):
-                G_optim.zero_grad(set_to_none=True)
-
-                noise = torch.randn(config.batch_size, config.noise_dim, device=device)
-                fake_imgs = G(noise)
-                fake_pred = D(fake_imgs).view(-1)
-
-                G_loss = criterion.G_loss(fake_pred)
-                G_loss.backward()
-
-                # grad clipping
-                if config.G_max_norm is not None:
-                    clip_grad_norm_(G.parameters(), config.G_max_norm)       
-
-                G_optim.step()
-
-                epoch_g_loss += G_loss.item()
+        
+        data_iter = iter(train_loader)
+        pbar = tqdm(total=len(train_loader), desc=f"Epoch {epoch+1}/{config.epochs}")
+        
+        while True:
+            try:
+                ### Train Discriminator ###
+                for _ in range(config.n_d):
+                    real_imgs = next(data_iter)
+                    pbar.update(1)
+                    
+                    real_imgs = real_imgs.to(device)
+                    b_size = real_imgs.size(0)
+                    
+                    D_optim.zero_grad(set_to_none=True)
+                    
+                    # real
+                    real_pred = D(real_imgs).view(-1)
+                    # fake
+                    noise = torch.randn(b_size, config.noise_dim, device=device)
+                    with torch.no_grad():
+                        fake_imgs = G(noise)
+                    fake_pred = D(fake_imgs).view(-1)
+                    
+                    D_loss = criterion.D_loss(real_pred, fake_pred)
+                    D_loss.backward()
+                    
+                    if config.D_max_norm is not None:
+                        clip_grad_norm_(D.parameters(), config.D_max_norm)
+                        
+                    D_optim.step()
+                    epoch_d_loss += D_loss.item()
+                    
+                ### Train Generator ###
+                for _ in range(config.n_g):
+                    noise = torch.randn(b_size, config.noise_dim, device=device)
+                    
+                    G_optim.zero_grad(set_to_none=True)
+                    
+                    fake_imgs = G(noise)
+                    fake_pred = D(fake_imgs).view(-1)
+                    
+                    G_loss = criterion.G_loss(fake_pred)
+                    G_loss.backward()
+                    
+                    if config.G_max_norm is not None:
+                        clip_grad_norm_(G.parameters(), config.G_max_norm)
+                        
+                    G_optim.step()
+                    epoch_g_loss += G_loss.item()
+                    
+            except StopIteration:
+                break
+                
+        pbar.close()
 
         # save loss
         G_losses.append(epoch_g_loss / (len(train_loader) * config.n_g))
-        D_losses.append(epoch_d_loss / len(train_loader))
+        D_losses.append(epoch_d_loss / (len(train_loader) * config.n_d))
 
         # checkpoint
         if (epoch + 1) % 10 == 0:
