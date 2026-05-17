@@ -113,8 +113,9 @@ def train(G: nn.Module,
                         
                     G_optim.step()
                     epoch_g_loss += G_loss.item()
-                    
+                  
             except StopIteration:
+                pbar.clear()  
                 break
                 
         pbar.close()
