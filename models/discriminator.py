@@ -8,7 +8,6 @@ class Discriminator(nn.Module):
     Discriminator for GAN frameworks (vanilla GAN, WGAN-GP, HingeGAN).
     """
     def __init__(self, 
-                 image_size: int = 512, 
                  image_channels: int = 3,
                  base_channels: int = 64,
                  dropout_rate: float = 0.0, 
@@ -18,7 +17,6 @@ class Discriminator(nn.Module):
                  patch: bool = True):
         """
         Args:
-            image_size: Input spatial resolution (assumed square). Default 512.
             image_channels: Input image channels. Default 3.
             base_channels: Channel width at the first conv block. Default 64.
             dropout_rate: Dropout probability applied in deeper blocks. Default 0.

@@ -8,7 +8,6 @@ D_max_norm: 5
 D_model:
     name: "D"
     parameters:
-        image_size: 512
         image_channels: 3
         base_channels: 64
         dropout_rate: 0.0   # turn on if overfitting
@@ -23,8 +22,8 @@ G_model:
         n_z: 128
         image_size: 512
         image_channels: 3
-        base_size: 8
         base_channels: 512
+        min_channels: 16
 
 
 D_optimizer:

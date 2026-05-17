@@ -17,41 +17,43 @@ class BaselineGenerator(nn.Module):
                  n_z: int = 128,
                  image_size: int = 512,
                  image_channels: int = 3,
-                 base_size: int = 8,
                  base_channels: int = 512,
-                 ):
+                 min_channels: int = 16):
         """
         Args:
             n_z: Size of random noise input vector. Default 128.
-            image_size: Input spatial resolution (assumed square). Default 512.
-            image_channels: Input image channels. Default 3.
-            base_size: Feature map width at the first deconv block. Default 8.
+            image_size: Output spatial resolution (must be a power of 2). Default 512.
+            image_channels: Output image channels. Default 3.
             base_channels: Channel width at the first deconv block. Default 512.
+            min_channels: Channel floor for intermediate blocks. Default 16.
         """
         super().__init__()
-        self.base_size = base_size
+
+        assert image_size > 0 and (image_size & (image_size - 1)) == 0, \
+            f"image_size must be a power of 2, got {image_size}"
+
+        self.base_size = 8
         self.base_channels = base_channels
+        n_blocks = int(math.log2(image_size // self.base_size))
 
         self.input_layer = nn.Linear(
-            n_z, self.base_size * self.base_size * self.base_channels
+            n_z, self.base_size * self.base_size * base_channels
         )
 
-        ch = base_channels
-        self.upsample = nn.Sequential(
-            # 8 -> 16
-            self._deconv_block(ch, ch // 2),
-            # 16 -> 32
-            self._deconv_block(ch // 2, ch // 4),
-            # 32 -> 64
-            self._deconv_block(ch // 4, ch // 8),
-            # 64 -> 128
-            self._deconv_block(ch // 8, ch // 8),
-            # 128 -> 256
-            self._deconv_block(ch // 8, ch // 16),
-            # 256 -> 512
-            self._deconv_block(ch // 16, image_channels,
-                                         last_block=True),
-        )
+        # build channel schedule for intermediate blocks
+        channel_schedule = []
+        in_ch = base_channels
+        for _ in range(n_blocks - 1):
+            out_ch = max(in_ch // 2, min_channels)
+            channel_schedule.append((in_ch, out_ch))
+            in_ch = out_ch
+        channel_schedule.append((in_ch, image_channels))
+
+        blocks = [
+            self._deconv_block(in_c, out_c, last_block=(i == len(channel_schedule) - 1))
+            for i, (in_c, out_c) in enumerate(channel_schedule)
+        ]
+        self.upsample = nn.Sequential(*blocks)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         z = self.input_layer(z)
@@ -75,7 +77,7 @@ class BaselineGenerator(nn.Module):
             layers.append(nn.BatchNorm2d(out_c))
             layers.append(nn.ReLU(inplace=True))
         else:
-           layers.append(nn.Tanh())
+            layers.append(nn.Tanh())
 
         return nn.Sequential(*layers)
 
@@ -97,12 +99,13 @@ class UpsampleResBlock(nn.Module):
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False)
         self.activate = nn.ReLU(inplace=True)
         self.identity = nn.Conv2d(in_ch, out_ch, 1) if in_ch != out_ch else nn.Identity()
+        self.norm_sc = nn.BatchNorm2d(in_ch)
         self.norm1 = nn.BatchNorm2d(out_ch)
         self.norm2 = nn.BatchNorm2d(out_ch)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.upsample(x)
-        shortcut = self.identity(x)
+        shortcut = self.identity(self.norm_sc(x))
 
         x = self.conv1(x)
         x = self.norm1(x)
@@ -124,44 +127,39 @@ class AdvancedGenerator(nn.Module):
                  n_z: int = 128,
                  image_size: int = 512,
                  image_channels: int = 3,
-                 base_size: int = 4,
                  base_channels: int = 512,
-                 ):
+                 min_channels: int = 16):
         """
         Args:
-            n_z: Size of random noise input vector. Default 128.
-            image_size: Input spatial resolution (assumed square). Default 512.
-            image_channels: Input image channels. Default 3.
-            base_size: Feature map width at the first deconv block. Default 4.
-            base_channels: Channel width at the first deconv block. Default 512.
+            n_z: Size of random noise input vector.
+            image_size: Output spatial resolution (must be a power of 2). Default 512.
+            image_channels: Output image channels. Default 3.
+            base_channels: Channel width at the first upsample block. Default 512.
+            min_channels: Channel floor — no block goes below this. Default 16.
         """
         super().__init__()
-        self.base_size = base_size
+        assert image_size > 0 and (image_size & (image_size - 1)) == 0, \
+            f"image_size must be a power of 2, got {image_size}"
+        
+        self.base_size = 4
         self.base_channels = base_channels
+        n_blocks = int(math.log2(image_size // self.base_size))
 
         self.input_layer = nn.Linear(
-            n_z, self.base_size * self.base_size * self.base_channels
+            n_z, self.base_size * self.base_size * base_channels
         )
 
-        ch = base_channels
-        self.upsample_blocks = nn.Sequential(
-            # 4 -> 8
-            UpsampleResBlock(ch, ch // 2),
-            # 8 -> 16
-            UpsampleResBlock(ch // 2, ch // 4),
-            # 16 -> 32
-            UpsampleResBlock(ch // 4, ch // 8),
-            # 32 -> 64
-            UpsampleResBlock(ch // 8, ch // 16),
-            # 64 -> 128
-            UpsampleResBlock(ch // 16, ch // 16),
-            # 128 -> 256
-            UpsampleResBlock(ch // 16, ch // 32),
-            # 256 -> 512
-            UpsampleResBlock(ch // 32, ch // 32),
-        )
+        # buils upsample blocks
+        blocks = []
+        in_ch = base_channels
+        for _ in range(n_blocks):
+            out_ch = max(in_ch // 2, min_channels)
+            blocks.append(UpsampleResBlock(in_ch, out_ch))
+            in_ch = out_ch
+
+        self.upsample_blocks = nn.Sequential(*blocks)
         self.out_block = nn.Sequential(
-            nn.Conv2d(ch // 32, image_channels, kernel_size=1),
+            nn.Conv2d(in_ch, image_channels, kernel_size=1),
             nn.Tanh()
         )
 

@@ -10,20 +10,20 @@ from .discriminator import Discriminator
 @pytest.fixture(scope="module")
 def baseline_g():
     return BaselineGenerator(n_z=128, image_size=512, image_channels=3,
-                              base_size=8, base_channels=512).eval()
+                             base_channels=512, min_channels=16).eval()
 
 @pytest.fixture(scope="module")
 def advanced_g():
     return AdvancedGenerator(n_z=128, image_size=512, image_channels=3,
-                              base_size=4, base_channels=512).eval()
+                             base_channels=512, min_channels=16).eval()
 
 @pytest.fixture(scope="module")
 def discriminator():
-    return Discriminator(image_size=512, base_channels=64, patch=False).eval()
+    return Discriminator(base_channels=64, patch=False).eval()
 
 @pytest.fixture(scope="module")
 def discriminator_patch():
-    return Discriminator(image_size=512, base_channels=64, patch=True).eval()
+    return Discriminator(base_channels=64, patch=True).eval()
 
 @pytest.fixture(scope="module")
 def dataloader():
@@ -171,7 +171,7 @@ class TestDataloader:
         batch = next(iter(dl))
 
         G = G_cls(n_z=cfg.noise_dim, image_size=cfg.input_dim).eval()
-        D = Discriminator(image_size=cfg.input_dim, patch=False).eval()
+        D = Discriminator(patch=False).eval()
 
         with torch.no_grad():
             real_score = D(batch)
