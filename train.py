@@ -9,8 +9,8 @@ from pathlib import Path
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 from utils import (Config, 
-    save_checkpoint, load_checkpoint, 
-    set_seed, visualize_progress
+    save_checkpoint, load_checkpoint, set_seed, 
+    visualize_progress, gradient_penalty
 )
 
 from models import get_discriminator, get_generator
@@ -73,6 +73,9 @@ def train(G: nn.Module,
                     fake_pred = D(fake_imgs).view(-1)
                     
                     D_loss = criterion.D_loss(real_pred, fake_pred)
+                    if config.grad_penalty_lambda is not None:
+                        gard_penalty = gradient_penalty(D, real_imgs, fake_imgs, device)
+                        D_loss += config.grad_penalty_lambda * gard_penalty
                     D_loss.backward()
                     
                     if config.D_max_norm is not None:

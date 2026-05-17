@@ -84,7 +84,7 @@ def visualize_progress(G_losses: list[float],
 def gradient_penalty(critic: nn.Module, 
                      real: torch.Tensor, 
                      fake: torch.Tensor, 
-                     device: str = "cuda") -> float:
+                     device: str = "cuda") -> torch.Tensor:
     B = real.size(0)
 
     eps = torch.rand(B, 1, 1, 1, device=device)
