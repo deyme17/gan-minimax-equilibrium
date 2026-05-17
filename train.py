@@ -73,15 +73,26 @@ def train(G: nn.Module,
                     fake_pred = D(fake_imgs).view(-1)
                     
                     D_loss = criterion.D_loss(real_pred, fake_pred)
+
+                    # apply gradient penalty
                     if config.grad_penalty_lambda is not None:
                         gard_penalty = gradient_penalty(D, real_imgs, fake_imgs, device)
                         D_loss += config.grad_penalty_lambda * gard_penalty
+
                     D_loss.backward()
                     
+                    # clip grad norm
                     if config.D_max_norm is not None:
                         clip_grad_norm_(D.parameters(), config.D_max_norm)
                         
                     D_optim.step()
+
+                    # apply weight clipping
+                    if config.weight_clip is not None:
+                        c = config.weight_clip
+                        for p in D.parameters():
+                            p.data.clamp_(-c, c)
+
                     epoch_d_loss += D_loss.item()
                     
                 ### Train Generator ###
@@ -93,9 +104,10 @@ def train(G: nn.Module,
                     fake_imgs = G(noise)
                     fake_pred = D(fake_imgs).view(-1)
                     
-                    G_loss = criterion.G_loss(fake_pred)
+                    G_loss = criterion.G_loss(fake_pred)                    
                     G_loss.backward()
-                    
+
+                    # clip grad norm                    
                     if config.G_max_norm is not None:
                         clip_grad_norm_(G.parameters(), config.G_max_norm)
                         

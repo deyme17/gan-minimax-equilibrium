@@ -39,6 +39,7 @@ class Config:
     n_d: int = 1
     epochs: int = 320
     grad_penalty_lambda: float|None = None
+    weight_clip: float|None = None
     G_max_norm: float|None = None
     D_max_norm: float|None = None
 
