@@ -78,3 +78,29 @@ def visualize_progress(G_losses: list[float],
         plt.close(fig)
     else:
         plt.show()
+
+
+
+def gradient_penalty(critic: nn.Module, 
+                     real: torch.Tensor, 
+                     fake: torch.Tensor, 
+                     device: str = "cuda") -> float:
+    B = real.size(0)
+
+    eps = torch.rand(B, 1, 1, 1, device=device)
+    interpolated = eps * real + (1 - eps) * fake
+    interpolated.requires_grad_(True)
+    mixed_scores = critic(interpolated)
+
+    grad = torch.autograd.grad(
+        inputs=interpolated,
+        outputs=mixed_scores,
+        grad_outputs=torch.ones_like(mixed_scores),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+
+    grad = grad.view(B, -1)
+    grad_norm = grad.norm(2, dim=1)
+    grad_penalty = torch.mean((grad_norm - 1) ** 2)
+    return grad_penalty
