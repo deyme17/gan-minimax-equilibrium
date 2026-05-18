@@ -104,3 +104,20 @@ def gradient_penalty(critic: nn.Module,
     grad_norm = grad.norm(2, dim=1)
     grad_penalty = torch.mean((grad_norm - 1) ** 2)
     return grad_penalty
+
+
+
+def grad_norm(module: nn.Module) -> float:
+    """Total L2 gradient norm across all parameters."""
+    total = 0.0
+    for p in module.parameters():
+        if p.grad is not None:
+            total += p.grad.data.norm(2).item() ** 2
+    return total ** 0.5
+
+
+
+def clip_rate(norms: list[float], max_norm: float) -> float:
+    if not norms:
+        return 0.0
+    return sum(1 for n in norms if n > max_norm) / len(norms)
