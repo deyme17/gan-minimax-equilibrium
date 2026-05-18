@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from utils import (Config,
     save_checkpoint, load_checkpoint, set_seed,
     visualize_progress, gradient_penalty,
-    grad_norm, clip_rate
+    grad_norm, clip_rate, gan_init_weights
 )
 
 from models import get_discriminator, get_generator
@@ -222,6 +222,8 @@ if __name__ == "__main__":
     # model
     G = get_generator(config).to(device)
     D = get_discriminator(config).to(device)
+    G.apply(gan_init_weights)
+    D.apply(gan_init_weights)
 
     # optimizer
     G_optimizer = get_G_optimizer(config, G.parameters())

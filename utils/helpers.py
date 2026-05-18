@@ -121,3 +121,12 @@ def clip_rate(norms: list[float], max_norm: float) -> float:
     if not norms:
         return 0.0
     return sum(1 for n in norms if n > max_norm) / len(norms)
+
+
+
+def gan_init_weights(module: nn.Module):
+    """Classic GAN parameter initialization from DCGAN paper."""
+    if isinstance(module, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
+        nn.init.normal_(module.weight, 0.0, 0.02)
+        if module.bias is not None:
+            nn.init.zeros_(module.bias)
