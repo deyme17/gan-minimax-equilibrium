@@ -99,14 +99,15 @@ class UpsampleResBlock(nn.Module):
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False)
         self.activate = nn.ReLU(inplace=True)
         self.identity = nn.Conv2d(in_ch, out_ch, 1) if in_ch != out_ch else nn.Identity()
-        self.norm_sc = nn.BatchNorm2d(in_ch)
+        self.norm0 = nn.BatchNorm2d(in_ch)
         self.norm1 = nn.BatchNorm2d(out_ch)
         self.norm2 = nn.BatchNorm2d(out_ch)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.upsample(x)
-        shortcut = self.identity(self.norm_sc(x))
+        shortcut = self.identity(x)
 
+        x = self.norm0(x)
         x = self.conv1(x)
         x = self.norm1(x)
         x = self.activate(x)
