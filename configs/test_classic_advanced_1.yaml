@@ -29,7 +29,7 @@ G_model:
 D_optimizer:
     name: "AdamW"
     parameters:
-        lr:  0.00001
+        lr:  0.00003
         betas: [0.5, 0.999]
         weight_decay: 0
         amsgrad: False
