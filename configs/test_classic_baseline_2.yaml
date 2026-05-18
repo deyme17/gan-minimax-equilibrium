@@ -50,4 +50,4 @@ loss:
 
 # Conclusions: 
 #   - D - is much stronger then G and it's very confident
-#   - G gets confiedent rejection fromn D it leads to explosive gradients and G diverge + drives in mode collapse
+#   - G gets confiedent rejection from D it leads to explosive gradients and G diverge + drives in mode collapse
