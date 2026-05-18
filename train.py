@@ -123,6 +123,15 @@ def train(G: nn.Module,
                         
                     G_optim.step()
                     epoch_g_loss += G_loss.item()
+
+            pbar.set_postfix({
+                "D": f"{epoch_d_loss/(batch_idx+1):.3f}",
+                "G": f"{epoch_g_loss/max(len(g_norms),1):.3f}",
+                "Dx": f"{sum(d_real_scores)/len(d_real_scores):.2f}",
+                "Dgz": f"{sum(d_fake_scores)/len(d_fake_scores):.2f}",
+                "gN": f"{g_norms[-1]:.1f}" if g_norms else "0",
+                "dN": f"{d_norms[-1]:.1f}",
+            })
  
         # metrics
         n_d_steps = max(len(d_real_scores), 1)
