@@ -135,5 +135,6 @@ def gan_init_weights(module: nn.Module):
 
 
 
-def add_instance_noise(x, std=0.05):
+def add_instance_noise(x: torch.Tensor, std: float = 0.05) -> torch.Tensor:
+    if std <= 0.0: return x
     return x + torch.randn_like(x) * std

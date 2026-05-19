@@ -42,6 +42,7 @@ class Config:
     weight_clip: float|None = None
     G_max_norm: float|None = None
     D_max_norm: float|None = None
+    instance_noise: bool = False
 
     # registries
     D_model: RegistryConfig = field(default_factory=RegistryConfig)

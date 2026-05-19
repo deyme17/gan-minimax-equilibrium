@@ -61,6 +61,7 @@ def train(G: nn.Module,
         g_norms = []
         d_norms = []
 
+        curr_noise_std = max(0.0, 0.1 * (1.0 - (epoch / config.epochs) * 2.0))
         pbar = tqdm(train_loader, total=len(train_loader), desc=f"Epoch {epoch+1}/{config.epochs}")
         
         for batch_idx, real_imgs in enumerate(pbar):
@@ -71,12 +72,14 @@ def train(G: nn.Module,
             D_optim.zero_grad(set_to_none=True)
             
             # real
-            real_imgs = add_instance_noise(real_imgs)
+            if config.instance_noise:
+                real_imgs = add_instance_noise(real_imgs, curr_noise_std)
             real_pred = D(real_imgs).view(-1)
             # fake
             noise = torch.randn(b_size, config.noise_dim, device=device)
             fake_imgs = G(noise).detach()
-            fake_imgs = add_instance_noise(fake_imgs)
+            if config.instance_noise:
+                fake_imgs = add_instance_noise(fake_imgs, curr_noise_std)
             fake_pred = D(fake_imgs).view(-1)
             
             D_loss = criterion.D_loss(real_pred, fake_pred)
