@@ -1,7 +1,7 @@
 noise_dim: 128
 seed: 277
 n_g: 1
-n_d: 1
+n_d: 2
 epochs: 50
 G_max_norm: 10
 D_max_norm: 10
@@ -14,7 +14,7 @@ D_model:
         dropout_rate: 0.0
         sn: False
         neg_slope: 0.2
-        norm: "none"
+        norm: "batch"
         patch: False
 
 G_model:
@@ -30,7 +30,7 @@ D_optimizer:
     name: "AdamW"
     parameters:
         lr:  0.00005
-        betas: [0.5, 0.999]
+        betas: [0.5, 0.9]
         weight_decay: 0
         amsgrad: False
 
