@@ -12,7 +12,8 @@ from torch.utils.data import DataLoader
 from utils import (Config,
     save_checkpoint, load_checkpoint, set_seed,
     visualize_progress, gradient_penalty,
-    grad_norm, clip_rate, gan_init_weights
+    grad_norm, clip_rate, gan_init_weights,
+    add_instance_noise
 )
 
 from models import get_discriminator, get_generator
@@ -70,10 +71,12 @@ def train(G: nn.Module,
             D_optim.zero_grad(set_to_none=True)
             
             # real
+            real_imgs = add_instance_noise(real_imgs)
             real_pred = D(real_imgs).view(-1)
             # fake
             noise = torch.randn(b_size, config.noise_dim, device=device)
             fake_imgs = G(noise).detach()
+            fake_imgs = add_instance_noise(fake_imgs)
             fake_pred = D(fake_imgs).view(-1)
             
             D_loss = criterion.D_loss(real_pred, fake_pred)

@@ -132,3 +132,8 @@ def gan_init_weights(module: nn.Module):
         nn.init.normal_(module.weight, 0.0, 0.02)
         if module.bias is not None:
             nn.init.zeros_(module.bias)
+
+
+
+def add_instance_noise(x, std=0.05):
+    return x + torch.randn_like(x) * std
