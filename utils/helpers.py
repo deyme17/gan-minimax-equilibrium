@@ -86,6 +86,8 @@ def gradient_penalty(critic: nn.Module,
                      fake: torch.Tensor, 
                      device: str = "cuda") -> torch.Tensor:
     B = real.size(0)
+    real = real.detach()
+    fake = fake.detach()
 
     eps = torch.rand(B, 1, 1, 1, device=device)
     interpolated = eps * real + (1 - eps) * fake

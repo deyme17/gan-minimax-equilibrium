@@ -14,7 +14,7 @@ D_model:
         image_channels: 3
         base_channels: 64
         dropout_rate: 0.0
-        sn: True
+        sn: False
         neg_slope: 0.2
         norm: "none"
         patch: False

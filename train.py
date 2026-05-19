@@ -73,8 +73,7 @@ def train(G: nn.Module,
             real_pred = D(real_imgs).view(-1)
             # fake
             noise = torch.randn(b_size, config.noise_dim, device=device)
-            with torch.no_grad():
-                fake_imgs = G(noise)
+            fake_imgs = G(noise).detach()
             fake_pred = D(fake_imgs).view(-1)
             
             D_loss = criterion.D_loss(real_pred, fake_pred)
