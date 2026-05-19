@@ -40,3 +40,12 @@ G_optimizer:
 loss:
     name: "Wasserstein"
     parameters: {}
+
+
+# Conclusions: 
+#   - every GAN model that uses Wassertain loss suffers from enormous gradient explosion
+#   - loss is negative for both D and G and it is very large
+#   - D can't classify even the simplest images and output 1 every time
+#   - G can't learn from D because D is broken
+#   - spectral norm doe not helping, unfortunately
+#   - lipschitz constrain can not be reached

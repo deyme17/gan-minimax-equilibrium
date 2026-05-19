@@ -45,3 +45,12 @@ G_optimizer:
 loss:
     name: "Hinge"
     parameters: {}
+
+
+# Conclusions: 
+#   - both model is optimized
+#   - nash equilibrium is almost reached
+#   - hinge loss works
+#   - training is very non-stable
+#   - gradients is exploded
+#   - D do his work but G can't learn because of unstable gradients
