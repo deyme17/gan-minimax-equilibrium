@@ -1,17 +1,17 @@
 noise_dim: 128
 seed: 277
 n_g: 1
-n_d: 2
+n_d: 1
 epochs: 50
-G_max_norm: 10
-D_max_norm: 10
+G_max_norm: 20
+D_max_norm: 7
 
 D_model:
     name: "D"
     parameters:
         image_channels: 3
         base_channels: 64
-        dropout_rate: 0.0
+        dropout_rate: 0.3
         sn: False
         neg_slope: 0.2
         norm: "batch"
@@ -29,7 +29,7 @@ G_model:
 D_optimizer:
     name: "AdamW"
     parameters:
-        lr:  0.00005
+        lr:  0.00002
         betas: [0.5, 0.9]
         weight_decay: 0
         amsgrad: False
