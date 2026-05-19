@@ -3,8 +3,6 @@ seed: 277
 n_g: 1
 n_d: 5
 epochs: 50
-G_max_norm: 10
-D_max_norm: 10
 
 D_model:
     name: "D"

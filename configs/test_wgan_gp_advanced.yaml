@@ -3,8 +3,6 @@ seed: 277
 n_g: 1
 n_d: 5
 epochs: 50
-G_max_norm: 10
-D_max_norm: 10
 grad_penalty_lambda: 10
 
 D_model:
@@ -30,14 +28,14 @@ G_model:
 D_optimizer:
     name: "Adam"
     parameters:
-        lr: 0.00005
+        lr: 0.0001
         betas: [0., 0.9]
 
 
 G_optimizer:
     name: "Adam"
     parameters:
-        lr: 0.00005
+        lr: 0.0001
         betas: [0., 0.9]
 
 loss:

@@ -102,9 +102,9 @@ def gradient_penalty(critic: nn.Module,
         retain_graph=True,
     )[0]
 
-    grad = grad.view(B, -1)
-    grad_norm = grad.norm(2, dim=1)
-    grad_penalty = torch.mean((grad_norm - 1) ** 2)
+    grad = grad.reshape(B, -1)                    # (B, C*H*W)
+    grad_norm = grad.norm(2, dim=1)               # (B,)
+    grad_penalty = ((grad_norm - 1) ** 2).mean()  # scalar
     return grad_penalty
 
 
