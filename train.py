@@ -131,8 +131,8 @@ def train(G: nn.Module,
                 "G": f"{epoch_g_loss/max(len(g_norms),1):.3f}",
                 "Dx": f"{sum(d_real_scores)/len(d_real_scores):.2f}",
                 "Dgz": f"{sum(d_fake_scores)/len(d_fake_scores):.2f}",
-                "gN": f"{g_norms[-1]:.1f}" if g_norms else "0",
-                "dN": f"{d_norms[-1]:.1f}",
+                "avg_gN": f"{sum(g_norms)/len(g_norms):.1f}" if g_norms else "-",
+                "avg_dN": f"{sum(d_norms)/len(d_norms):.1f}",
             })
  
         # metrics
