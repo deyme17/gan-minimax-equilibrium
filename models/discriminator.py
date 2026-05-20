@@ -111,7 +111,7 @@ class Discriminator(nn.Module):
 
 
 ###################
-### WGAN Critid ###
+### WGAN Critiс ###
 ###################
 
 
