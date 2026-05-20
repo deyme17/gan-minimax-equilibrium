@@ -155,12 +155,11 @@ def train(G: nn.Module,
  
         # checkpoint
         if (epoch + 1) % 10 == 0:
-            count = (epoch + 1) // 50 + 1
             print(f"[Epoch {epoch+1}] G Loss: {G_losses[-1]:.3f} | D Loss: {D_losses[-1]:.3f}")
             save_checkpoint(
                 G=G, D=D, G_optim=G_optim, D_optim=D_optim,
                 G_losses=G_losses, D_losses=D_losses, epoch=epoch,
-                save_path=config.checkpoints_dir / f"{experiment_tag}_N{count}_checkpoint.pt"
+                save_path=config.checkpoints_dir / f"{experiment_tag}_checkpoint.pt"
             )
  
         # wandb

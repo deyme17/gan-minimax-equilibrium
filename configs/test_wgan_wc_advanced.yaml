@@ -3,11 +3,12 @@ seed: 277
 n_g: 1
 n_d: 5
 epochs: 50
-# grad_penalty_lambda: 10
-weight_clip: 0.01
+weight_clip: 0.02
+G_max_norm: 12
+D_max_norm: 12
 
 D_model:
-    name: "D"
+    name: "C"
     parameters:
         image_channels: 3
         base_channels: 64
@@ -18,7 +19,7 @@ D_model:
         patch: False
 
 G_model:
-    name: "G"
+    name: "WG"
     parameters:
         n_z: 128
         image_size: 512
@@ -29,12 +30,12 @@ G_model:
 D_optimizer:
     name: "RMSprop"
     parameters:
-        lr: 0.00005
+        lr: 0.0001
 
 G_optimizer:
     name: "RMSprop"
     parameters:
-        lr: 0.00005
+        lr: 0.0001
 
 loss:
     name: "Wasserstein"
@@ -42,9 +43,9 @@ loss:
 
 
 # Conclusions: 
-#   - every GAN model that uses Wassertain loss suffers from enormous gradient explosion
-#   - loss is negative for both D and G and it is very large
-#   - D can't classify even the simplest images and output 1 every time
-#   - G can't learn from D because D is broken
-#   - possible cause - weight clipping -> D is suffering
-#   - lipschitz constrain can not be reached
+#   - gradients is enormous for both C and G (surly they become smaller over the time but not that much (from ~250_000_000 to ~5_000_000) and not monotonicly)
+#   - loss is negative for both C and G and its magnitudes are very large
+#   - C can't classify even the simplest images and output 1 every time
+#   - G can't learn from C because C is broken
+#   - possible cause - weight clipping -> C is suffering
+#   - lipschitz constrain can not be reached -> main and the most obvious poroblem
