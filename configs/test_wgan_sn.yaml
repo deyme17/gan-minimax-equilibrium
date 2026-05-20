@@ -3,6 +3,8 @@ seed: 277
 n_g: 1
 n_d: 5
 epochs: 50
+G_max_norm: 12
+D_max_norm: 12
 
 D_model:
     name: "C"
@@ -43,3 +45,8 @@ loss:
 
 
 # Conclusions: 
+#   - gradients is still big either for C and G (but smaller then in WGAN-wc)
+#   - loss is negative for both C and G. G loss is big (~-750) C loss is smaller (~-5)
+#   - C can't be learnt because of gradient explosion
+#   - G can't learn from C because C is illiterate
+#   - even if every part of C model is wrapped in spectral norm, lipschitz constrain can not be reached fully but it's still better the weight clipping
