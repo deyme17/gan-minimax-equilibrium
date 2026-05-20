@@ -1,4 +1,3 @@
-from .config_cls import Config
 from pathlib import Path
 import random as rnd
 import numpy as np
@@ -7,6 +6,7 @@ import matplotlib.pyplot as plt
 from torch import nn
 from torch.optim import Optimizer
 import torch
+from torch.nn.utils import spectral_norm
 
 
 
@@ -138,3 +138,9 @@ def gan_init_weights(module: nn.Module):
 def add_instance_noise(x: torch.Tensor, std: float = 0.05) -> torch.Tensor:
     if std <= 0.0: return x
     return x + torch.randn_like(x) * std
+
+
+
+def spectral_norm_wrap(layer: nn.Module, use_sn: bool) -> nn.Module:
+    """Conditionally wrap a layer with spectral normalisation."""
+    return spectral_norm(layer) if use_sn else layer
