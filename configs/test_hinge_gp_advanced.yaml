@@ -48,3 +48,10 @@ loss:
     name: "Hinge"
     parameters:
         label_smoothing: 0.05
+
+
+# Conclusions: 
+#   - gradients is exploded but not that much because of gradient penalty
+#   - at the start both G and D losses is raised but then its optimize
+#   - some kind of equlibrium is rached
+#   - to avoid gradient explosion additional regularization is needed

@@ -47,3 +47,8 @@ loss:
     name: "Hinge"
     parameters:
         label_smoothing: 0.05
+
+
+# Conclusions: 
+#   - gradients is exploded but not that much because of spectral norm
+#   - D a little bit stronger then G
