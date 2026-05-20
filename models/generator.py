@@ -170,3 +170,94 @@ class AdvancedGenerator(nn.Module):
         z = self.upsample_blocks(z)
         z = self.out_block(z)
         return z
+
+
+##################################################################
+### Advanced WGAN Generator with Upsample-Conv Residual blocks ###
+##################################################################
+
+
+class WGANUpsampleResBlock(nn.Module):
+    """
+    Upsample residual block adapted for WGAN:
+    """
+    def __init__(self, in_ch: int, out_ch: int):
+        super().__init__()
+        self.upsample = nn.Upsample(scale_factor=2)
+        self.conv1 = nn.Conv2d(in_ch,  out_ch, 3, padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False)
+        self.activate = nn.ReLU(inplace=True)
+        self.identity = nn.Conv2d(in_ch, out_ch, 1) if in_ch != out_ch else nn.Identity()
+
+        g0 = min(8, in_ch)
+        g1 = min(8, out_ch)
+        self.norm0 = nn.GroupNorm(g0, in_ch)
+        self.norm1 = nn.GroupNorm(g1, out_ch)
+        self.norm2 = nn.GroupNorm(g1, out_ch)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.upsample(x)
+        shortcut = self.identity(x)
+
+        x = self.norm0(x)
+        x = self.conv1(x)
+        x = self.norm1(x)
+        x = self.activate(x)
+
+        x = self.conv2(x)
+        x = self.norm2(x)
+        x = (x + shortcut) / math.sqrt(2) # norm var
+        x = self.activate(x)
+
+        return x
+
+
+class WGANAdvancedGenerator(nn.Module):
+    """
+    Advanced generator for WGAN / WGAN-GP.
+    """
+    def __init__(self,
+                 n_z: int = 128,
+                 image_size: int = 512,
+                 image_channels: int = 3,
+                 base_channels: int = 512,
+                 min_channels: int = 16):
+        """
+        Args:
+            n_z: Size of the latent noise vector. Default 128.
+            image_size: Output spatial resolution (power of 2). Default 512.
+            image_channels: Output image channels. Default 3.
+            base_channels: Channel width at the first upsample block. Default 512.
+            min_channels: Channel floor — no block goes below this. Default 16.
+        """
+        super().__init__()
+
+        assert image_size > 0 and (image_size & (image_size - 1)) == 0, \
+            f"image_size must be a power of 2, got {image_size}"
+
+        self.base_size = 4
+        self.base_channels = base_channels
+        n_blocks = int(math.log2(image_size // self.base_size))
+
+        self.input_layer = nn.Linear(
+            n_z, self.base_size * self.base_size * base_channels
+        )
+
+        blocks = []
+        in_ch = base_channels
+        for _ in range(n_blocks):
+            out_ch = max(in_ch // 2, min_channels)
+            blocks.append(WGANUpsampleResBlock(in_ch, out_ch))
+            in_ch = out_ch
+
+        self.upsample_blocks = nn.Sequential(*blocks)
+        self.out_block = nn.Sequential(
+            nn.Conv2d(in_ch, image_channels, kernel_size=1),
+            nn.Tanh(),
+        )
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        z = self.input_layer(z)
+        z = z.view(-1, self.base_channels, self.base_size, self.base_size)
+        z = self.upsample_blocks(z)
+        return self.out_block(z)
