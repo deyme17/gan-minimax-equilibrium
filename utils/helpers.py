@@ -52,7 +52,7 @@ def load_checkpoint(path: Path|str, G: nn.Module, D: nn.Module,
         D.load_state_dict(checkpoint["D"], strict=True)
     except RuntimeError as e:
         raise RuntimeError(
-            f"Failed to load state_dict for {G.__name__} or {D.__name__}: {e}"
+            f"Failed to load state_dict for {type(G).__name__} or {type(D).__name__}: {e}"
         )
     G.eval()
     D.eval()
