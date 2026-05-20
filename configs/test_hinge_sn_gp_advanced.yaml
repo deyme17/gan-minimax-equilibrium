@@ -1,0 +1,50 @@
+noise_dim: 128
+seed: 277
+n_g: 1
+n_d: 2
+epochs: 50
+G_max_norm: 8
+D_max_norm: 4
+instance_noise: True
+grad_penalty_lambda: 5
+
+D_model:
+    name: "D"
+    parameters:
+        image_channels: 3
+        base_channels: 64
+        dropout_rate: 0.
+        sn: True
+        neg_slope: 0.2
+        norm: "none"
+        patch: False
+
+G_model:
+    name: "G"
+    parameters:
+        n_z: 128
+        image_size: 512
+        image_channels: 3
+        base_channels: 512
+
+
+D_optimizer:
+    name: "AdamW"
+    parameters:
+        lr:  0.00008
+        betas: [0.5, 0.9]
+        weight_decay: 0
+        amsgrad: False
+
+G_optimizer:
+    name: "AdamW"
+    parameters:
+        lr:  0.0001
+        betas: [0.5, 0.9]
+        weight_decay: 0
+        amsgrad: False
+
+loss:
+    name: "Hinge"
+    parameters:
+        label_smoothing: 0.05
