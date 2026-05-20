@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils import spectral_norm
+from utils import spectral_norm_wrap as sn_wrap
 
 
 
@@ -26,7 +27,7 @@ class Discriminator(nn.Module):
             image_channels: Input image channels. Default 3.
             base_channels: Channel width at the first conv block. Default 64.
             dropout_rate: Dropout probability applied in deeper blocks. Default 0.
-            sn: Use spectral normalisation on conv layers. Default False.
+            sn: Use spectral normalisation on ALL weight layers. Default False.
             neg_slope: LeakyReLU negative slope throughout. Default 0.2.
             norm: Normalisation type: 'batch' | 'instance' | 'none'.
                     - Use 'none' with sn=True (WGAN-GP) or vanilla GAN.
@@ -62,17 +63,15 @@ class Discriminator(nn.Module):
         )
 
         if patch:
-            conv_out = nn.Conv2d(ch * 8, 1, kernel_size=4,
-                                 stride=1, padding=1, bias=True)
-            self.head = spectral_norm(conv_out) if sn else conv_out
+            self.head = sn_wrap(nn.Conv2d(ch * 8, 1, kernel_size=4, stride=1, padding=1, bias=True), sn)
         else:
             self.pool = nn.AdaptiveAvgPool2d((4, 4))
             self.head = nn.Sequential(
                 nn.Flatten(),
-                nn.Linear(ch * 8 * 4 * 4, ch * 8),
+                sn_wrap(nn.Linear(ch * 8 * 4 * 4, ch * 8), sn),
                 nn.LeakyReLU(neg_slope),
                 nn.Dropout(dropout_rate),
-                nn.Linear(ch * 8, 1),
+                sn_wrap(nn.Linear(ch * 8, 1), sn),
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -111,9 +110,8 @@ class Discriminator(nn.Module):
 
 
 ###################
-### WGAN Critiс ###
+### WGAN Critic ###
 ###################
-
 
 
 class WGANCritic(nn.Module):
@@ -131,10 +129,10 @@ class WGANCritic(nn.Module):
             image_channels: Input image channels. Default 3.
             base_channels: Channel width at the first conv block. Default 64.
             dropout_rate: Dropout probability in deeper blocks. Default 0.
-            sn: Spectral normalisation on conv layers. Default True.
+            sn: Spectral normalisation on ALL weight layers. Default True.
             neg_slope: LeakyReLU negative slope. Default 0.2.
             norm: Normalisation type: 'instance' | 'layer' | 'none'.
-            patch: - If True PatchGAN-style output (B, 1, H', W').
+            patch: - If True  -> PatchGAN-style output (B, 1, H', W').
                    - If False -> global pool + MLP head  (B, 1).
         """
         super().__init__()
@@ -168,17 +166,15 @@ class WGANCritic(nn.Module):
                              dropout_rate=dropout_rate, neg_slope=neg_slope),
         )
         if patch:
-            conv_out = nn.Conv2d(ch * 8, 1, kernel_size=4,
-                                 stride=1, padding=1, bias=True)
-            self.head = spectral_norm(conv_out) if sn else conv_out
+            self.head = sn_wrap(nn.Conv2d(ch * 8, 1, kernel_size=4, stride=1, padding=1, bias=True), sn)
         else:
             self.pool = nn.AdaptiveAvgPool2d((4, 4))
             self.head = nn.Sequential(
                 nn.Flatten(),
-                nn.Linear(ch * 8 * 4 * 4, ch * 8),
+                sn_wrap(nn.Linear(ch * 8 * 4 * 4, ch * 8), sn),
                 nn.LeakyReLU(neg_slope),
                 nn.Dropout(dropout_rate),
-                nn.Linear(ch * 8, 1),
+                sn_wrap(nn.Linear(ch * 8, 1), sn),
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
