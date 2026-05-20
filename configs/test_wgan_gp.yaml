@@ -3,21 +3,21 @@ seed: 277
 n_g: 1
 n_d: 5
 epochs: 50
-grad_penalty_lambda: 10
+grad_penalty_lambda: 13
 
 D_model:
-    name: "D"
+    name: "C"
     parameters:
         image_channels: 3
         base_channels: 64
         dropout_rate: 0.0
         sn: False
         neg_slope: 0.2
-        norm: "none"
+        norm: "instance"
         patch: False
 
 G_model:
-    name: "G"
+    name: "WG"
     parameters:
         n_z: 128
         image_size: 512
@@ -44,9 +44,3 @@ loss:
 
 
 # Conclusions: 
-#   - every GAN model that uses Wassertain loss suffers from enormous gradient explosion
-#   - loss is negative for both D and G and it is very large
-#   - D can't classify even the simplest images and output 1 every time
-#   - G can't learn from D because D is broken
-#   - gradient penalty does not work, fortunately
-#   - lipschitz constrain can not be reached

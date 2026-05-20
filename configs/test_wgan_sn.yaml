@@ -5,7 +5,7 @@ n_d: 5
 epochs: 50
 
 D_model:
-    name: "D"
+    name: "C"
     parameters:
         image_channels: 3
         base_channels: 64
@@ -16,7 +16,7 @@ D_model:
         patch: False
 
 G_model:
-    name: "G"
+    name: "WG"
     parameters:
         n_z: 128
         image_size: 512
@@ -27,14 +27,14 @@ G_model:
 D_optimizer:
     name: "Adam"
     parameters:
-        lr: 0.00005
+        lr: 0.0001
         betas: [0., 0.9]
 
 
 G_optimizer:
     name: "Adam"
     parameters:
-        lr: 0.00005
+        lr: 0.0001
         betas: [0., 0.9]
 
 loss:
@@ -43,9 +43,3 @@ loss:
 
 
 # Conclusions: 
-#   - every GAN model that uses Wassertain loss suffers from enormous gradient explosion
-#   - loss is negative for both D and G and it is very large
-#   - D can't classify even the simplest images and output 1 every time
-#   - G can't learn from D because D is broken
-#   - spectral norm doe not helping, unfortunately
-#   - lipschitz constrain can not be reached

@@ -51,7 +51,7 @@ loss:
 
 # Conclusions: 
 #   - G is stronger and learns in 5 times more than D
-#   - D optimized penalized by dropout ad smaller lr
+#   - D optimized penalized by dropout and smaller lr
 #   - gradient do not explode
 #   - labels_smoothing is added
 #   - unfortunately D is not that strong to classify real/fake properly -> G can't learn from D -> both of model weak (but it's better then previous configurations)
