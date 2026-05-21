@@ -868,9 +868,150 @@ Gradient penalty ефективно обмежив вибухи градієнт
 Таким чином, вибір функції втрат у GAN – це вибір метрики на просторі розподілів і, відповідно, умов існування та стійкості рівноваги мінімаксної гри.
 
 
-
 // ─── literature ───
 #pagebreak()
 #set text(lang: "uk")
 = Список використаних джерел
 #bibliography("refs.bib", title: none, style: "ieee")
+
+
+// ─── appendix ───
+#pagebreak()
+= Додатки <додатки>
+#v(1em)
+
+#set heading(numbering: "1.1")
+
+#align(right)[#text(size: 1em)[Компонент підвищення роздільної здатності G]]
+#block(
+  fill: rgb("#f5f5f5"),
+  stroke: 0.5pt + rgb("#cccccc"),
+  inset: 10pt,
+  radius: 4pt,
+  width: 100%,
+)[
+```python
+class WGANUpsampleResBlock(nn.Module):
+    def __init__(self, in_ch: int, out_ch: int):
+        super().__init__()
+        self.upsample = nn.Upsample(scale_factor=2)
+        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False)
+        self.activate = nn.ReLU(inplace=True)
+        self.identity = nn.Conv2d(in_ch, out_ch, 1) if in_ch != out_ch else nn.Identity()
+
+        g0 = min(8, in_ch)
+        g1 = min(8, out_ch)
+        self.norm0 = nn.GroupNorm(g0, in_ch)
+        self.norm1 = nn.GroupNorm(g1, out_ch)
+        self.norm2 = nn.GroupNorm(g1, out_ch)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.upsample(x)
+        shortcut = self.identity(x)
+        x = self.norm0(x)
+        x = self.conv1(x)
+        x = self.norm1(x)
+        x = self.activate(x)
+        x = self.conv2(x)
+        x = self.norm2(x)
+        return self.activate((x + shortcut) / math.sqrt(2))
+```]
+
+#v(1em)
+
+#align(right)[#text(size: 1em)[Гравець-Мінімізатор (Генератор / Generator)]]
+#block(
+  fill: rgb("#f5f5f5"),
+  stroke: 0.5pt + rgb("#cccccc"),
+  inset: 10pt,
+  radius: 4pt,
+  width: 100%,
+)[
+```python
+class WGANAdvancedGenerator(nn.Module):
+    def __init__(self, n_z: int = 128, image_size: int = 512, 
+                 image_channels: int = 3, base_channels: int = 512, min_channels: int = 16):
+        super().__init__()
+        self.base_size = 4
+        self.base_channels = base_channels
+        n_blocks = int(math.log2(image_size // self.base_size))
+
+        self.input_layer = nn.Linear(n_z, self.base_size * self.base_size * base_channels)
+
+        blocks = []
+        in_ch = base_channels
+        for _ in range(n_blocks):
+            out_ch = max(in_ch // 2, min_channels)
+            blocks.append(WGANUpsampleResBlock(in_ch, out_ch))
+            in_ch = out_ch
+
+        self.upsample_blocks = nn.Sequential(*blocks)
+        self.out_block = nn.Sequential(nn.Conv2d(in_ch, image_channels, kernel_size=1), nn.Tanh())
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        z = self.input_layer(z)
+        z = z.view(-1, self.base_channels, self.base_size, self.base_size)
+        return self.out_block(self.upsample_blocks(z))
+```]
+
+#v(1em)
+
+#align(right)[#text(size: 1em)[Гравець-Максимізатор (Критик / Critic)]]
+#block(
+  fill: rgb("#f5f5f5"),
+  stroke: 0.5pt + rgb("#cccccc"),
+  inset: 10pt,
+  radius: 4pt,
+  width: 100%,
+)[
+```python
+class WGANCritic(nn.Module):
+    def __init__(self, image_channels: int = 3, base_channels: int = 64,
+                 dropout_rate: float = 0.0, sn: bool = True,
+                 neg_slope: float = 0.2, norm: str = "none", patch: bool = True):
+        super().__init__()
+        assert norm in ("instance", "layer", "none"), "Групова нормалізація шкодить обмеженню Ліпшиця"
+        self.patch = patch
+        ch = base_channels
+
+        self.features = nn.Sequential(
+            self._conv_block(image_channels, ch, sn=sn, norm="none", neg_slope=neg_slope),
+            self._conv_block(ch, ch * 2, sn=sn, norm=norm, neg_slope=neg_slope),
+            self._conv_block(ch * 2, ch * 4, sn=sn, norm=norm, dropout_rate=dropout_rate, neg_slope=neg_slope),
+            self._conv_block(ch * 4, ch * 8, sn=sn, norm=norm, dropout_rate=dropout_rate, neg_slope=neg_slope),
+            self._conv_block(ch * 8, ch * 8, sn=sn, norm=norm, dropout_rate=dropout_rate, neg_slope=neg_slope),
+        )
+        
+        if patch:
+            self.head = nn.Conv2d(ch * 8, 1, kernel_size=4, stride=1, padding=1, bias=True)
+            if sn: self.head = spectral_norm(self.head)
+        else:
+            self.pool = nn.AdaptiveAvgPool2d((4, 4))
+            self.head = nn.Sequential(
+                nn.Flatten(),
+                spectral_norm(nn.Linear(ch * 8 * 4 * 4, ch * 8)) if sn else nn.Linear(ch * 8 * 4 * 4, ch * 8),
+                nn.LeakyReLU(neg_slope),
+                nn.Dropout(dropout_rate),
+                spectral_norm(nn.Linear(ch * 8, 1)) if sn else nn.Linear(ch * 8, 1),
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.features(x)
+        return self.head(x) if self.patch else self.head(self.pool(x))
+
+    @staticmethod
+    def _conv_block(in_c: int, out_c: int, kernel_size: int = 4, stride: int = 2, padding: int = 1,
+                    dropout_rate: float = 0.0, neg_slope: float = 0.2, sn: bool = True, norm: str = "none") -> nn.Sequential:
+        conv = nn.Conv2d(in_c, out_c, kernel_size=kernel_size, stride=stride, padding=padding, bias=(norm == "none"))
+        if sn: conv = spectral_norm(conv)
+        layers = [conv]
+        if norm == "instance":
+            layers.append(nn.InstanceNorm2d(out_c, affine=True))
+        elif norm == "layer":
+            layers.append(_ChanLayerNorm(out_c))
+        layers.append(nn.LeakyReLU(neg_slope, inplace=True))
+        if dropout_rate > 0.0:
+            layers.append(nn.Dropout2d(dropout_rate))
+        return nn.Sequential(*layers)
+```]
