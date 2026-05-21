@@ -1,9 +1,9 @@
 noise_dim: 128
 seed: 277
 n_g: 1
-n_d: 5
+n_d: 8
 epochs: 50
-grad_penalty_lambda: 13
+grad_penalty_lambda: 10
 
 D_model:
     name: "C"
@@ -13,8 +13,8 @@ D_model:
         dropout_rate: 0.0
         sn: False
         neg_slope: 0.2
-        norm: "instance"
-        patch: False
+        norm: "layer"
+        patch: True # very usefull: additional saptial information + bigger penalties for gradients
 
 G_model:
     name: "WG"
@@ -28,7 +28,7 @@ G_model:
 D_optimizer:
     name: "Adam"
     parameters:
-        lr: 0.0001
+        lr: 0.0003
         betas: [0., 0.9]
 
 
@@ -44,3 +44,6 @@ loss:
 
 
 # Conclusions: 
+#   - gradients is finally perfect and not exploded (avg_gN=1.7, avg_dN=5.4)
+#   - loss is small, especially for Critic
+#   - the best config. the key here is to not overregularize Critic.
